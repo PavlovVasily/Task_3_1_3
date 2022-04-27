@@ -21,6 +21,16 @@ public class UserDaoImp implements UserDao {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    @Transactional
+    public void iniRoles () {
+        System.out.println("iniRoles");
+        em.createNativeQuery("INSERT INTO `pptask_3_1_2`.`roles` (`id`, `role`) VALUES ('1', 'ROLE_USER');")
+                .executeUpdate();
+        em.createNativeQuery("INSERT INTO `pptask_3_1_2`.`roles` (`id`, `role`) VALUES ('2', 'ROLE_ADMIN');")
+                .executeUpdate();
+
+    }
+
     @Override
     @Transactional
     public boolean saveUser(String name, String email, byte age, String password, String[] roleNames) {
@@ -56,7 +66,14 @@ public class UserDaoImp implements UserDao {
 
     @Override
     public List<User> getAllUsers() {
-        return em.createQuery("select u from User u join fetch u.roles").getResultList();
+        List<User> notSortList = new ArrayList<>(
+                new HashSet<>(
+                        em.createQuery("select u from User u join fetch u.roles").
+                                getResultList()));
+
+        return notSortList.stream().
+                sorted(((o1, o2) -> (int) (o1.getId() - o2.getId()))).
+                collect(Collectors.toList());
     }
 
     @Override
